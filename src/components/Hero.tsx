@@ -50,11 +50,12 @@ const HERO_SLIDES: HeroSlide[] = [
   },
 ];
 
-const SLIDE_INTERVAL = 2000;
+const SLIDE_INTERVAL = 5000;
 
 export const Hero: React.FC<HeroProps> = ({ onExplorePortfolio }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isPreloading, setIsPreloading] = useState(true);
   const touchStartXRef = useRef<number | null>(null);
 
   const handleNext = useCallback(() => {
@@ -65,19 +66,39 @@ export const Hero: React.FC<HeroProps> = ({ onExplorePortfolio }) => {
     setCurrentIndex((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   }, []);
 
-  // Autoplay with gentle cinematic transition
+  // Autoplay with 5-second duration
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || isPreloading) return;
     const timer = setInterval(handleNext, SLIDE_INTERVAL);
     return () => clearInterval(timer);
-  }, [isPaused, handleNext]);
+  }, [isPaused, isPreloading, handleNext]);
 
-  // Preload gallery photographs
+  // Preload gallery photographs with cascading preloader sequencing
   useEffect(() => {
-    HERO_SLIDES.forEach((slide) => {
-      const img = new Image();
-      img.src = slide.image;
+    let isMounted = true;
+    const startTime = Date.now();
+
+    const preloadPromises = HERO_SLIDES.map((slide) => {
+      return new Promise<void>((resolve) => {
+        const img = new Image();
+        img.src = slide.image;
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+      });
     });
+
+    Promise.all(preloadPromises).then(() => {
+      const elapsed = Date.now() - startTime;
+      // Allow 1.35s for the cascading preloader panels to unfold gracefully
+      const delay = Math.max(0, 1350 - elapsed);
+      setTimeout(() => {
+        if (isMounted) setIsPreloading(false);
+      }, delay);
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Keyboard navigation support
@@ -204,21 +225,112 @@ export const Hero: React.FC<HeroProps> = ({ onExplorePortfolio }) => {
               className="group relative bg-[#FAF6F1] border-2 sm:border-[2.5px] border-[#3E2023] p-3 sm:p-4 rounded-[1px] shadow-[0_28px_60px_-15px_rgba(62,32,35,0.22),_0_10px_20px_-6px_rgba(62,32,35,0.10),_0_2px_6px_rgba(62,32,35,0.06)] transition-all duration-700 cursor-pointer"
               title="Click to explore portfolio"
             >
-              {/* 4:5 Portrait Photographic Window */}
+              {/* 4:5 Portrait Photographic Window with Archival Aperture */}
               <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#E8E0D7] border border-[#3E2023] shadow-[inset_0_2px_8px_rgba(62,32,35,0.08)]">
+                {/* 01. Unfolding / Cascading Elegant Preloader */}
+                <AnimatePresence>
+                  {isPreloading && (
+                    <motion.div
+                      key="cascading-hero-preloader"
+                      initial={{ opacity: 1 }}
+                      exit={{
+                        opacity: 0,
+                        transition: { duration: 0.55, delay: 0.45 },
+                      }}
+                      className="absolute inset-0 z-30 flex flex-col justify-between overflow-hidden bg-[#FAF6F1]"
+                      aria-live="polite"
+                      aria-busy="true"
+                    >
+                      {/* Cascading Unfolding Vertical Panels (staggered louvers) */}
+                      <div className="absolute inset-0 grid grid-cols-4 pointer-events-none z-10">
+                        {[0, 1, 2, 3].map((colIdx) => (
+                          <motion.div
+                            key={colIdx}
+                            initial={{ scaleY: 1 }}
+                            exit={{
+                              scaleY: 0,
+                              transition: {
+                                duration: 0.7,
+                                delay: colIdx * 0.1, // Staggered unfolding cascade
+                                ease: [0.76, 0, 0.24, 1],
+                              },
+                            }}
+                            style={{ originY: colIdx % 2 === 0 ? 0 : 1 }}
+                            className="w-full h-full bg-[#EDE6DC] border-r border-[#DCD1C4] last:border-none relative"
+                          >
+                            {/* Fine Antique Gold Hairline running down each cascading panel */}
+                            <div className="absolute top-0 bottom-0 right-0 w-[1px] bg-gradient-to-b from-transparent via-[#C29A3A]/45 to-transparent" />
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      {/* Center Archival Editorial Preloader Crest */}
+                      <motion.div
+                        exit={{ opacity: 0, y: -6, transition: { duration: 0.3 } }}
+                        className="relative z-20 flex-1 flex flex-col items-center justify-center px-4 text-center"
+                      >
+                        {/* Unfolding Geometric Emblem */}
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                          className="w-10 h-10 rounded-full border border-[#C29A3A]/70 flex items-center justify-center mb-3 bg-[#FAF6F1]/95 shadow-[0_2px_8px_rgba(62,32,35,0.06)]"
+                        >
+                          <motion.span
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+                            className="text-[11px] text-[#8F6E24] font-serif"
+                          >
+                            ✦
+                          </motion.span>
+                        </motion.div>
+
+                        {/* Atelier Brand Callout */}
+                        <motion.span
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2, duration: 0.6 }}
+                          className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#3E2023] font-medium"
+                        >
+                          Melissa Fourie
+                        </motion.span>
+
+                        {/* Unfolding Horizontal Hairline Accent */}
+                        <motion.div
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: 1 }}
+                          transition={{ delay: 0.35, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                          style={{ originX: 0.5 }}
+                          className="w-16 h-[1px] bg-[#C29A3A]/60 my-2"
+                        />
+
+                        <motion.span
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.45, duration: 0.6 }}
+                          className="text-[8px] uppercase tracking-[0.24em] text-[#75595C]/80 font-light"
+                        >
+                          Exhibition Study
+                        </motion.span>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* 02. Active Photographic Slide Presentation */}
                 <AnimatePresence mode="sync" initial={false}>
                   <motion.div
                     key={currentSlide.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.65, ease: [0.25, 1, 0.5, 1] }}
+                    transition={{ duration: 0.85, ease: [0.25, 1, 0.5, 1] }}
                     className="absolute inset-0 w-full h-full"
                   >
                     <motion.img
                       initial={{ scale: 1 }}
-                      animate={{ scale: 1.02 }}
-                      transition={{ duration: 2.0, ease: 'easeOut' }}
+                      animate={{ scale: 1.03 }}
+                      transition={{ duration: 5.0, ease: 'easeOut' }}
                       src={currentSlide.image}
                       alt={`Bridal portrait study — Hair and makeup artistry by Melissa Fourie`}
                       loading={currentIndex === 0 ? 'eager' : 'lazy'}
@@ -228,6 +340,32 @@ export const Hero: React.FC<HeroProps> = ({ onExplorePortfolio }) => {
                     />
                   </motion.div>
                 </AnimatePresence>
+
+                {/* Cascading Shutter Louver Transition between slide changes */}
+                {!isPreloading && (
+                  <motion.div
+                    key={`slide-shutter-${currentSlide.id}`}
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 0 }}
+                    transition={{ duration: 0.65, delay: 0.18 }}
+                    className="absolute inset-0 pointer-events-none z-10 grid grid-cols-3"
+                  >
+                    {[0, 1, 2].map((col) => (
+                      <motion.div
+                        key={col}
+                        initial={{ scaleY: 1 }}
+                        animate={{ scaleY: 0 }}
+                        transition={{
+                          duration: 0.5,
+                          delay: col * 0.08,
+                          ease: [0.77, 0, 0.175, 1],
+                        }}
+                        style={{ originY: col % 2 === 0 ? 0 : 1 }}
+                        className="w-full h-full bg-[#FAF6F1]/80 backdrop-blur-[1px] border-r border-[#DCD1C4]/40 last:border-none"
+                      />
+                    ))}
+                  </motion.div>
+                )}
 
                 {/* Soft ambient inner lens vignette */}
                 <div
@@ -247,7 +385,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplorePortfolio }) => {
 
             {/* 04. Indexing & Actions Under the Hero Frame */}
             <div className="flex flex-col items-center mt-3.5 sm:mt-4 space-y-3">
-              {/* Minimalist Slide Index Tabs */}
+              {/* Minimalist Slide Index Tabs with 5-Second Duration Progress Bar */}
               <div className="flex items-center justify-center space-x-4">
                 {HERO_SLIDES.map((slide, idx) => (
                   <button
@@ -257,17 +395,36 @@ export const Hero: React.FC<HeroProps> = ({ onExplorePortfolio }) => {
                       setCurrentIndex(idx);
                     }}
                     aria-label={`View portrait 0${idx + 1}`}
-                    className="py-1 px-1 focus:outline-none cursor-pointer group"
+                    className="py-1 px-1.5 focus:outline-none cursor-pointer group flex flex-col items-center min-w-[28px]"
                   >
                     <span
                       className={`text-[9.5px] font-serif transition-colors duration-300 block ${
                         idx === currentIndex
-                          ? 'text-[#3E2023] font-normal border-b border-[#C29A3A]'
+                          ? 'text-[#3E2023] font-normal'
                           : 'text-[#75595C]/45 hover:text-[#3E2023] font-light'
                       }`}
                     >
                       0{idx + 1}
                     </span>
+                    {/* 5-Second Linear Progress Hairline */}
+                    <div className="w-full h-[1.5px] mt-0.5 bg-[#DCD1C4]/30 overflow-hidden rounded-full">
+                      {idx === currentIndex && !isPreloading ? (
+                        <motion.div
+                          key={`progress-${currentIndex}-${isPaused}`}
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: isPaused ? undefined : 1 }}
+                          transition={{ duration: 5.0, ease: 'linear' }}
+                          style={{ originX: 0 }}
+                          className="w-full h-full bg-[#C29A3A] rounded-full"
+                        />
+                      ) : (
+                        <div
+                          className={`w-full h-full ${
+                            idx === currentIndex ? 'bg-[#C29A3A]' : 'bg-transparent'
+                          }`}
+                        />
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
