@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <style>
+    .m-mark { fill: #3E2023; }
+    @media (prefers-color-scheme: dark) {
+      .m-mark { fill: #F2ECE6; }
+    }
+  </style>
+  <!-- Melissa Fourie Minimal Luxurious "M" Monogram -->
+  <!-- Left Column & Serifs -->
+  <path class="m-mark" d="M 13 13 H 25 V 14.8 H 21.2 V 49.2 H 25 V 51 H 13 V 49.2 H 17.2 V 14.8 H 13 Z" />
+  <!-- Hairline Diagonal -->
+  <path class="m-mark" d="M 20.2 14.8 L 31.0 51.0 H 33.0 L 22.2 14.8 Z" />
+  <!-- Bold Diagonal -->
+  <path class="m-mark" d="M 30.6 51.0 H 34.6 L 44.2 14.8 H 40.2 Z" />
+  <!-- Right Column & Serifs -->
+  <path class="m-mark" d="M 39 13 H 51 V 14.8 H 44.2 V 49.2 H 51 V 51 H 39 V 49.2 H 42.5 V 14.8 H 39 Z" />
+</svg>

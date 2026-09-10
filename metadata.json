@@ -1,0 +1,8 @@
+{
+  "name": "Remix Melissa Fourie Makeup 2",
+  "description": "Luxury hair and makeup artistry for weddings, events and elevated occasions, built around refined beauty and an impeccably polished client experience.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
